@@ -1,8 +1,10 @@
 class User < ApplicationRecord
-  #accessor for remember token to prevent db storage
-  attr_accessor :remember_token
+  #accessor for tokens to prevent db storage
+  attr_accessor :remember_token, :activation_token
+  #creating activation digest
+  before_create :create_activation_digest
   #storing email in lowercase
-  before_save { email.downcase! }
+  before_save :downcase_email
   #name validations
   validates :name, presence: true, length: { maximum: 50 }
   #email validations
@@ -42,4 +44,15 @@ class User < ApplicationRecord
   def forget
     update_attribute(:remember_digest, nil)
   end
+
+  private
+    def downcase_email
+      self.email.downcase!
+    end
+
+    #Creates and assigns activation token/digest
+    def create_activation_digest
+      self.activation_token = User.new_token
+      self.activation_digest = User.digest(activation_token)
+    end
 end
